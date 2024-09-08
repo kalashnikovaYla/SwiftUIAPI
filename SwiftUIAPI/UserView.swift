@@ -27,11 +27,3 @@ struct UserView: View {
     }
 }
 
-struct UserView_Previews: PreviewProvider {
-    static var previews: some View {
-        UserView(user: .init(id: 0,
-                             email: "tunds@gmail",
-                             name: "Tunde Adegoroye",
-                             company: .init(name: "tundsdev")))
-    }
-}

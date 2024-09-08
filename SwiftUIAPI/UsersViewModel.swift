@@ -17,32 +17,28 @@ final class UsersViewModel: ObservableObject {
     
     
     func fetchUsers() {
-        
         hasError = false
         isRefreshing = true
         
         let usersUrlString = "https://jsonplaceholder.typicode.com/users"
         if let url = URL(string: usersUrlString) {
             
-            URLSession
-                .shared
-                .dataTask(with: url) { [weak self] data, response, error in
-                
-                    
+            URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
                     DispatchQueue.main.async {
                         
+                        ///defer в Swift — это специальное ключевое слово, которое позволяет отложить выполнение блока кода до тех пор, пока управление не выйдет из текущей области видимости (например, из функции или замыкания). Это полезно для выполнения завершающих действий, таких как очистка ресурсов, сброс состояний или, в данном случае, изменение состояния переменной.
+                        ///независимо от того, как завершится выполнение блока кода внутри замыкания URLSession.shared.dataTask, self?.isRefreshing будет установлено в false в конце выполнения этого блока.
+                        ///Таким образом, если произойдет ошибка, и код выполнит self?.hasError = true и self?.error = ..., то после этого, даже если произошла ошибка, isRefreshing выполнится и будет установлен в false. То же самое произойдет, если данные успешно получены и обработаны.
+                        ///Использование defer здесь помогает избежать дублирования кода, поскольку вам не нужно повторять установку isRefreshing в false в нескольких местах. Цель состоит в том, чтобы гарантировать, что это действие произойдет в любом случае, когда управление покинет блок, что улучшает читаемость и надежность кода.
                         defer {
                             self?.isRefreshing = false
                         }
-                        
                         if let error = error {
                             self?.hasError = true
                             self?.error = UserError.custom(error: error)
                         } else {
-                            
                             let decoder = JSONDecoder()
-                            decoder.keyDecodingStrategy = .convertFromSnakeCase // Handle properties that look like first_name > firstName
-                            
+                            decoder.keyDecodingStrategy = .convertFromSnakeCase
                             if let data = data,
                                let users = try? decoder.decode([User].self, from: data) {
                                 self?.users = users
@@ -52,9 +48,7 @@ final class UsersViewModel: ObservableObject {
                             }
                         }
                     }
-                    
                 }.resume()
-
         }
     }
 }
